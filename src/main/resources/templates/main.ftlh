@@ -9,14 +9,14 @@
     <div>Messages list</div>
 
     <form method="post">
-        <input type="hidden" name="_csrf" value="${_csrf.token}}"/>
+        <input type="hidden" name="_csrf" value="${_csrf.token}"/>
         <input type="text" name="text" placeholder="Write message"/>
         <input type="text" name="tag" placeholder="Tag">
         <button type="submit">Submit</button>
     </form>
 
     <form method="get" action="/main">
-        <input type="text" name="filter" value="${filter}">
+        <input type="text" name="filter" value="${(filter)!}">
         <button type="submit">Find</button>
     </form>
 
