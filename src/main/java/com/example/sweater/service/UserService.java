@@ -117,7 +117,7 @@ public class UserService implements UserDetailsService {
         }
 
         if (StringUtils.hasText(password)) {
-            user.setPassword(password);
+            user.setPassword(passwordEncoder.encode(password));
         }
 
         userRepo.save(user);
