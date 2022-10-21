@@ -4,10 +4,13 @@ import com.example.sweater.domain.Role;
 import com.example.sweater.domain.User;
 import com.example.sweater.repos.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -105,8 +108,7 @@ public class UserService implements UserDetailsService {
     public void updateProfile(User user, String password, String email) {
         String userEmail = user.getEmail();
 
-        boolean isEmailChanged = (email != null && !email.equals(userEmail)) ||
-                (userEmail != null && !userEmail.equals(email));
+        boolean isEmailChanged = (StringUtils.hasText(email) && !email.equals(userEmail));
 
         if (isEmailChanged) {
             user.setEmail(email);
@@ -121,6 +123,8 @@ public class UserService implements UserDetailsService {
         }
 
         userRepo.save(user);
+        Authentication authentication = new PreAuthenticatedAuthenticationToken(user, user.getPassword(), user.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         if (isEmailChanged) {
             sendMessage(user);
