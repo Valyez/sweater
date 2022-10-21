@@ -7,7 +7,7 @@
         <div class="form-group row">
             <label class="col-sm-2 col-form-label"> Password: </label>
             <div class="col-sm-5">
-                <input type="password" class="form-control " name="password" placeholder="Enter your password"/>
+                <input type="password" class="form-control " name="password" placeholder="Enter new password"/>
             </div>
         </div>
         <div class="form-group row">
