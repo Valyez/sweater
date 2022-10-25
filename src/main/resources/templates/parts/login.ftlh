@@ -69,10 +69,16 @@
     </form>
 </#macro>
 
-<#macro logout>
+<#macro button_logout>
     <form action="/logout" method="post">
         <input type="hidden" name="_csrf" value="${_csrf.token}"/>
-        <button type="submit" class="btn btn-primary">Sing out</button>
+        <button type="submit" class="btn btn-primary">Sign out</button>
+    </form>
+</#macro>
+<#macro button_login>
+    <form action="/login" method="post">
+        <input type="hidden" name="_csrf" value="${_csrf.token}"/>
+        <button type="submit" class="btn btn-primary">Sign in</button>
     </form>
 </#macro>
 
