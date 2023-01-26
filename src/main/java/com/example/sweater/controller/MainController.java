@@ -8,10 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,7 +18,7 @@ import javax.validation.Valid;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 import java.util.UUID;
 
 @Controller
@@ -37,14 +35,19 @@ public class MainController {
     }
 
     @GetMapping("/main")
-    public String main(@RequestParam(required = false, defaultValue = "") String filter, Model model) {
+    public String main(
+            @RequestParam(required = false, defaultValue = "") String filter, Model model,
+            @RequestParam(required = false) Long messageId) {
         Iterable<Message> messages;
         if (filter != null && !filter.isEmpty()) {
             messages = messageRepo.findByTag(filter);
         } else {
             messages = messageRepo.findAll();
         }
-
+        if (messageId != null) {
+            Optional<Message> message = messageRepo.findById(messageId);
+            message.map(m -> model.addAttribute("message", m));
+        }
         model.addAttribute("messages", messages);
         model.addAttribute("filter", filter);
         return "main";
@@ -52,13 +55,18 @@ public class MainController {
 
     @PostMapping("/main")
     public String add(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal User currentUser,
             @Valid Message message,
             BindingResult bindingResult,
             Model model,
             @RequestParam("file") MultipartFile file
     ) throws IOException {
-        message.setAuthor(user);
+        if (message.getAuthor() != null) {
+            if (!message.getAuthor().equals(currentUser)) {
+                return "redirect:/main";
+            }
+        }
+        message.setAuthor(currentUser);
 
         if (bindingResult.hasErrors()) {
             Map<String, String> errorsMap = ControllerUtils.getErrors(bindingResult);
@@ -73,7 +81,7 @@ public class MainController {
         }
         Iterable<Message> messages = messageRepo.findAll();
         model.addAttribute("messages", messages);
-        return "main";
+        return "redirect:/main";
     }
 
     private void saveFile(Message message, MultipartFile file) throws IOException {
@@ -92,27 +100,10 @@ public class MainController {
         }
     }
 
-    @GetMapping("/user-messages/{user}")
-    public String userMessages(
-            @AuthenticationPrincipal User currentUser,
-            @PathVariable User user,
-            Model model,
-            @RequestParam(required = false) Message message
-    ) {
-        Set<Message> messages = user.getMessages();
 
-        model.addAttribute("userChannel", user);
-        model.addAttribute("subscriptionsCount", user.getSubscriptions().size());
-        model.addAttribute("subscribersCount", user.getSubscribers().size());
-        model.addAttribute("isSubscriber", user.getSubscribers().contains(currentUser));
-        model.addAttribute("messages", messages);
-        model.addAttribute("message", message);
-        model.addAttribute("isCurrentUser", currentUser.equals(user));
 
-        return "userMessages";
-    }
 
-    @PostMapping("/user-messages/{user}")
+   /*@PostMapping("/user-messages/{user}")
     public String updateMessage(
             @AuthenticationPrincipal User currentUser,
             @PathVariable Long user,
@@ -135,7 +126,7 @@ public class MainController {
         }
 
         return "redirect:/user-messages/" + user;
-    }
+    }*/
 
 
 }

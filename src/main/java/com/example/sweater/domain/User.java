@@ -27,6 +27,7 @@ public class User implements UserDetails {
     @NotBlank(message = "Email cannot be empty")
     private String email;
     private String activationCode;
+    private String avatarFilename;
 
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"))
@@ -172,5 +173,13 @@ public class User implements UserDetails {
 
     public void setSubscriptions(Set<User> subscriptions) {
         this.subscriptions = subscriptions;
+    }
+
+    public String getAvatarFilename() {
+        return avatarFilename;
+    }
+
+    public void setAvatarFilename(String avatar_filename) {
+        this.avatarFilename = avatar_filename;
     }
 }
