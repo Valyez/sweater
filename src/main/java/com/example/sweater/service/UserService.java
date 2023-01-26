@@ -4,6 +4,7 @@ import com.example.sweater.domain.Role;
 import com.example.sweater.domain.User;
 import com.example.sweater.repos.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,7 +15,10 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,6 +32,9 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Value("${upload.path}")
+    private String avatarPath;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -105,7 +112,7 @@ public class UserService implements UserDetailsService {
         userRepo.save(user);
     }
 
-    public void updateProfile(User user, String password, String email) {
+    public void updateProfile(User user, String password, String email, MultipartFile file) throws IOException {
         String userEmail = user.getEmail();
 
         boolean isEmailChanged = (StringUtils.hasText(email) && !email.equals(userEmail));
@@ -121,6 +128,8 @@ public class UserService implements UserDetailsService {
         if (StringUtils.hasText(password)) {
             user.setPassword(passwordEncoder.encode(password));
         }
+
+        saveAvatar(user, file);
 
         userRepo.save(user);
         Authentication authentication = new PreAuthenticatedAuthenticationToken(user, user.getPassword(), user.getAuthorities());
@@ -142,5 +151,21 @@ public class UserService implements UserDetailsService {
         user.getSubscribers().remove(currentUser);
 
         userRepo.save(user);
+    }
+
+    private void
+    saveAvatar(User user, MultipartFile file) throws IOException {
+        if (file != null && file.getOriginalFilename() != null && !file.getOriginalFilename().isEmpty()) {
+            File uploadDir = new File(avatarPath);
+
+            if (!uploadDir.exists()) {
+                uploadDir.mkdir();
+            }
+
+            String uuidFile = UUID.randomUUID().toString();
+            String resultFilename = uuidFile + "." + file.getOriginalFilename();
+            file.transferTo(new File(avatarPath + "/" + resultFilename));
+            user.setAvatarFilename(resultFilename);
+        }
     }
 }

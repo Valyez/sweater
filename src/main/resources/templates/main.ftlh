@@ -9,6 +9,6 @@
             </form>
         </div>
     </div>
-    <#include "parts/messageEdit.ftlh" />
+    <#include "parts/sendMessage.ftlh" />
     <#include "parts/messageList.ftlh" />
 </@c.page>
